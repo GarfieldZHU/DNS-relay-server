@@ -1,15 +1,12 @@
 #coding=utf-8
 #__author__ = 'Garfield'
-#Copyright = 'BUPT-Garfield, 03, 2015'
+#Copyright = 'BUPT-CS-Garfield, Class 4 Grade 3 ----- Date: 03, 2015'
 #This is main part of dns relay server
 
-from loadTable import *
+from dnsServer import *
 
-file_name = 'dnsrelay.txt'
-table = {}
 
 if __name__ == '__main__':
-    table = load_table(file_name)
-    print(table)
-    #while True:
-     #   pass
+    dns_server = DnsRelayServer()
+    dns_server.load_map()
+    dns_server.startup()
