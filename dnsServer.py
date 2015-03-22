@@ -3,9 +3,11 @@
 
 import socketserver
 import struct
+import loadTable
 from loadTable import *
 
 file_name = 'dnsrelay.txt'
+global domainmap
 
 
 class DnsQuestion:
@@ -21,7 +23,7 @@ class DnsQuestion:
                 #Add '.' between domain address
                 self.domain += '.'
             else:
-                self.domain = self.domain + chr(d)
+                self.domain += chr(d)
             i += 1
         self.package = data[0: i + 1]
         (self.type, self.classify) = struct.unpack('!HH', data[i + 1: i + 5])
@@ -80,12 +82,14 @@ class DnsUdpHandler(socketserver.BaseRequestHandler):
         data = self.request[0].strip()
         socket = self.request[1]
         analyzer = DnsAnalyzer(data)
-        dnsmap = DnsRelayServer.mapping
+        dnsmap = domainmap
+        #print(dnsmap)
         if analyzer.query.type == 1:
             #if receive a query request,then response it
             domain = analyzer.get_domain()
             if dnsmap.__contains__(domain):
                 analyzer.set_ip(dnsmap[domain])
+                print(dnsmap[domain])
                 socket.sendto(analyzer.get_package(), self.client_address)
             else:
                 socket.sendto(data, self.client_address)
@@ -94,21 +98,21 @@ class DnsUdpHandler(socketserver.BaseRequestHandler):
 
 
 class DnsRelayServer:
-    #dns relay
-    mapping = {}
+    #dns relay server
 
-    def __init__(self, port=8008):
+    def __init__(self, port=53):
         self.port = port
 
     @staticmethod
     def load_map():
-        mapping = load_table(file_name)
+        global domainmap
+        domainmap = load_table(file_name)
         #variable map is a dictionary whose key is domain address and value is ip.
-        if mapping is not None:
+        if domainmap is not None:
             print('> OK. Table has been loaded.')
-        #print(self.mapping)
 
     def startup(self):
         HOST, PORT = 'localhost', self.port
         server = socketserver.UDPServer((HOST, PORT), DnsUdpHandler)
         server.serve_forever()
+

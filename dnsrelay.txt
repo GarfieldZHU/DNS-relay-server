@@ -205,5 +205,6 @@
 202.108.33.89 sina 
 61.135.181.175 sohu
 123.127.134.10 bupt
+202.108.22.5 www.baidu.com
 0.0.0.0 ad4.sina.com.cn
 0.0.0.0 www.163daohang.com.cn
