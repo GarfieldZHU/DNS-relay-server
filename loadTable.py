@@ -6,10 +6,10 @@
 def load_table(file_name):
     table = {}
     try:
-        print("> Trying to open the file...")
+        print("--Trying to open the file...")
         f = open(file_name)
     except IOError:
-        print("> Fail to open the file", file_name)
+        print("--Fail to open the file", file_name)
         return None
     else:
         for eachLine in f:
