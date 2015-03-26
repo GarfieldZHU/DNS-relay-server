@@ -35,6 +35,7 @@ global domainmap
 
 
 class DnsQuery:
+    #from question part, get domain address which need to be queried
     def __init__(self, data):
         i = 1
         self.domain = ''
@@ -58,6 +59,7 @@ class DnsQuery:
 
 
 class DnsAnswer:
+    #write the answer part in dns package if needs
     def __init__(self, ip):
         self.name = 49164
         self.type = 1
@@ -141,4 +143,3 @@ class DnsRelayServer:
         print('> Server startup...\n> Bind UDP socket -- address & port: %s : %s\n' % (HOST, PORT))
         server = socketserver.UDPServer((HOST, PORT), DnsUdpHandler)
         server.serve_forever()
-
