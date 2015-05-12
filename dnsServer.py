@@ -197,7 +197,6 @@ class DnsUdpHandler(socketserver.BaseRequestHandler):
         analyzer = DnsAnalyzer(data)
         dnsmap = domainmap
         #print(dnsmap)
-
         if analyzer.query.type == 1:
             #print(data)
             #query wants the ip of domain
@@ -264,7 +263,6 @@ class DnsRelayServer:
                 print('- Get reply from outer server..')
                 print('> Domain:  ' + reply_analyzer.get_domain())
                 print('> Ip    :  ' + reply_ip + '\n')
-
                 rest = reply[2:]
                 Id = id_map[index]
                 reply = struct.pack('!H', Id) + rest
