@@ -73,7 +73,7 @@ import struct
 import socket
 import threading
 import sys
-from loadTable import *
+from fileIO import *
 
 file_name = 'dnsrelay.txt'
 outer = ('114.114.114.114', 53)
@@ -142,6 +142,9 @@ class DnsAnalyzer:
     def set_id(self, i):
         self.Id = i
 
+    def set_rcode(self, rcode):
+        self.Flags = self.Flags//16 * 16 + rcode
+
     def get_qr(self):
         qr = (self.Flags >> 15) % 2
         #print('> QR is : %d' % qr)
@@ -160,8 +163,15 @@ class DnsAnalyzer:
     def get_ip(self, reply):
         #get IP from Answer part when the it is reply package
         ip = ''
-        i = self.query.len + 24
+        i = self.query.len + 12
         #according structure of Answer, RDATA starts from the 13th byte of Answer
+        if_got = False
+        while not if_got:
+            if reply[i] == 0xc0 and reply[i+3] == 0x01:
+                if_got = True
+                i += 12
+            else:
+                i += 1
         ip += str(reply[i])
         ip += '.'
         ip += str(reply[i+1])
@@ -197,16 +207,20 @@ class DnsUdpHandler(socketserver.BaseRequestHandler):
         analyzer = DnsAnalyzer(data)
         dnsmap = domainmap
         #print(dnsmap)
+
         if analyzer.query.type == 1:
             #print(data)
             #query wants the ip of domain
             domain = analyzer.get_domain()
             if dnsmap.__contains__(domain):
                 #domain is found on local server
-                analyzer.set_ip(dnsmap[domain])
+                reply_ip = dnsmap[domain]
+                analyzer.set_ip(reply_ip)
+                if reply_ip == "0.0.0.0":
+                    analyzer.set_rcode(3)
                 print('- Domain exists on local server..')
                 print('> Domain:  ' + domain)
-                print('> Ip    :  ' + dnsmap[domain] + '\n')
+                print('> Ip    :  ' + reply_ip + '\n')
                 sock.sendto(analyzer.response(), self.client_address)
                 #print('- Package: %s\n' % analyzer.response())
             else:
@@ -257,12 +271,16 @@ class DnsRelayServer:
                 self.relay_sock.sendto(analyzer.request(index), outer)
 
                 reply, addr = self.relay_sock.recvfrom(BUFSIZE)
-                print('- Address: %s\n- Package: %s\n' % (addr, reply))
+                #print('- Address: %s\n- Package: %s\n' % (addr, reply))
                 reply_analyzer = DnsAnalyzer(reply)
+                domain = reply_analyzer.get_domain()
                 reply_ip = reply_analyzer.get_ip(reply)
                 print('- Get reply from outer server..')
-                print('> Domain:  ' + reply_analyzer.get_domain())
-                print('> Ip    :  ' + reply_ip + '\n')
+                print('> Domain:  ' + domain)
+                print('> Ip    :  ' + reply_ip + "\n")
+                domainmap[domain] = reply_ip
+                save_table(file_name, domain, reply_ip)
+
                 rest = reply[2:]
                 Id = id_map[index]
                 reply = struct.pack('!H', Id) + rest

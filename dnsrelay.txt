@@ -205,6 +205,11 @@
 202.108.33.89 sina 
 61.135.181.175 sohu
 123.127.134.10 bupt
-202.108.22.5 www.baidu.com
 0.0.0.0 ad4.sina.com.cn
 0.0.0.0 www.163daohang.com.cn
+42.62.12.69 www.dotamax.com
+115.25.217.12 www.sohu.com
+119.75.217.109 www.baidu.com
+12.130.132.30 sina.com
+202.108.33.60 sina.com.cn
+61.172.201.194 www.sina.com.cn
