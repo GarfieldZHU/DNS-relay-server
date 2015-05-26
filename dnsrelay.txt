@@ -213,3 +213,11 @@
 12.130.132.30 sina.com
 202.108.33.60 sina.com.cn
 61.172.201.194 www.sina.com.cn
+107.182.165.170 www.bilibili.tv
+107.182.165.170 www.bilibili.tv
+216.58.221.68 www.google.com
+54.85.146.186 www.bilbili.com
+173.194.72.199 www.google.com.hk
+222.192.186.41 www.taobao.com
+50.62.109.139 www.jingd.com
+50.62.109.139 www.jingd.com

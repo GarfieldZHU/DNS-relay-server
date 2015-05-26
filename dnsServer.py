@@ -73,7 +73,9 @@ import struct
 import socket
 import threading
 import sys
+import time
 from fileIO import *
+
 
 file_name = 'dnsrelay.txt'
 outer = ('114.114.114.114', 53)
@@ -166,8 +168,8 @@ class DnsAnalyzer:
         i = self.query.len + 12
         #according structure of Answer, RDATA starts from the 13th byte of Answer
         if_got = False
-        while not if_got:
-            if reply[i] == 0xc0 and reply[i+3] == 0x01:
+        while i < len(reply) and not if_got:
+            if reply[i] == 0xc0 and i+3 < len(reply) and reply[i+3] == 0x01:
                 if_got = True
                 i += 12
             else:
@@ -270,20 +272,26 @@ class DnsRelayServer:
                 id_map[index] = analyzer.get_id()
                 self.relay_sock.sendto(analyzer.request(index), outer)
 
+                self.relay_sock.setblocking(0)
+                time.sleep(2)
+                #设置为非阻塞状态,并等待2秒用于接收
                 reply, addr = self.relay_sock.recvfrom(BUFSIZE)
-                #print('- Address: %s\n- Package: %s\n' % (addr, reply))
-                reply_analyzer = DnsAnalyzer(reply)
-                domain = reply_analyzer.get_domain()
-                reply_ip = reply_analyzer.get_ip(reply)
-                print('- Get reply from outer server..')
-                print('> Domain:  ' + domain)
-                print('> Ip    :  ' + reply_ip + "\n")
-                domainmap[domain] = reply_ip
-                save_table(file_name, domain, reply_ip)
+                if len(reply) == 0:
+                    print('- Fail to receive the reply from outer server.\n')
+                else:
+                    #print('- Address: %s\n- Package: %s\n' % (addr, reply))
+                    reply_analyzer = DnsAnalyzer(reply)
+                    domain = reply_analyzer.get_domain()
+                    reply_ip = reply_analyzer.get_ip(reply)
+                    print('- Get reply from outer server..')
+                    print('> Domain:  ' + domain)
+                    print('> Ip    :  ' + reply_ip + "\n")
+                    domainmap[domain] = reply_ip
+                    save_table(file_name, domain, reply_ip)
 
-                rest = reply[2:]
-                Id = id_map[index]
-                reply = struct.pack('!H', Id) + rest
-                sock.sendto(reply, client_address)
-                #print(reply)
+                    rest = reply[2:]
+                    Id = id_map[index]
+                    reply = struct.pack('!H', Id) + rest
+                    sock.sendto(reply, client_address)
+                    #print(reply)
                 task_queue.pop(0)
